@@ -178,8 +178,16 @@ extension MapViewController: CLLocationManagerDelegate {
 extension MapViewController: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
         let renderer = MKPolylineRenderer(overlay: overlay)
-        renderer.strokeColor = .magenta
-        renderer.lineWidth = 8
+        myRenderArray.append(renderer)
+        for renderer in myRenderArray {
+            if myRenderArray.count > 2 {
+                myRenderArray[0].strokeColor = .systemRed
+                myRenderArray[1].strokeColor = .systemGray
+                myRenderArray[2].strokeColor = .systemBrown
+            } else {
+                renderer.strokeColor = .red
+            }
+        }
         return renderer
     }
 }
