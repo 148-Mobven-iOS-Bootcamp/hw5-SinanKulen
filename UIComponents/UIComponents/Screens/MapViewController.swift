@@ -12,15 +12,25 @@ class MapViewController: UIViewController {
 
     @IBOutlet weak var mapView: MKMapView!
 
+    var myRouteArray = [MKPolyline]()
+    var myRenderArray = [MKPolylineRenderer]()
+    var activeNumber = 0
+    
+    private var currentCoordinate : CLLocationCoordinate2D?
+    private var destinationCoordinate : CLLocationCoordinate2D?
+    
+    private lazy var locationManager : CLLocationManager = {
+        let locationManager = CLLocationManager()
+        locationManager.delegate = self
+        return locationManager
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         checkLocationPermission()
         addLongGestureRecognizer()
     }
-
-    private var currentCoordinate: CLLocationCoordinate2D?
-    private var destinationCoordinate: CLLocationCoordinate2D?
 
     func addLongGestureRecognizer() {
         let longPressGesture = UILongPressGestureRecognizer(target: self,
@@ -94,16 +104,56 @@ class MapViewController: UIViewController {
             let rect = polyline.boundingMapRect
             let region = MKCoordinateRegion(rect)
             self.mapView.setRegion(region, animated: true)
-
-            //Odev 1 navigate buttonlari ile diger route'lar gosterilmelidir.
+            
+            for route in response?.routes ?? [] {
+                self.myRouteArray.append(route.polyline)
+            }
+            self.mapView.addOverlays(self.myRouteArray, level: .aboveLabels)
         }
     }
 
-    private lazy var locationManager: CLLocationManager = {
-        let locationManager = CLLocationManager()
-        locationManager.delegate = self
-        return locationManager
-    }()
+    @IBAction func backRouteButton(_ sender: UIButton) {
+        let index = myRenderArray.count
+        
+        if activeNumber == 0 {
+            myRenderArray[activeNumber].strokeColor = .red
+            activeNumber = index - 1
+            myRenderArray[activeNumber].strokeColor = .systemRed
+            let rect = self.myRouteArray[activeNumber].boundingMapRect
+            let region = MKCoordinateRegion(rect)
+            self.mapView.setRegion(region, animated: true)
+            self.mapView.overlays(in: .aboveLabels)
+        } else {
+            myRenderArray[activeNumber].strokeColor = .red
+            activeNumber = index - 1
+            myRenderArray[activeNumber].strokeColor = .systemRed
+            let rect = self.myRouteArray[activeNumber].boundingMapRect
+            let region = MKCoordinateRegion(rect)
+     
+            self.mapView.setRegion(region, animated: true)
+        }
+    }
+    
+    @IBAction func forwardRouteButton(_ sender: UIButton) {
+        let index = myRenderArray.count
+        if activeNumber < index - 1 {
+            myRenderArray[activeNumber].strokeColor = .systemGray
+            activeNumber = activeNumber + 1
+            myRenderArray[activeNumber].strokeColor = .gray
+            let rect = self.myRouteArray[activeNumber].boundingMapRect
+            let region = MKCoordinateRegion(rect)
+            self.mapView.setRegion(region, animated: true)
+        } else {
+            myRenderArray[activeNumber].strokeColor = .systemGray
+            activeNumber = 0
+            myRenderArray[activeNumber].strokeColor = .gray
+            let rect = self.myRouteArray[activeNumber].boundingMapRect
+            let region = MKCoordinateRegion(rect)
+            self.mapView.setRegion(region, animated: true)
+        }
+    }
+    
+    
 }
 
 extension MapViewController: CLLocationManagerDelegate {
